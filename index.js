@@ -19,7 +19,9 @@ watch(config.watchDirectoryPath, { recursive: true }, (evt, absolutePath) => {
     scpCustomConfig["path"] = scpDefaultConfig["path"] + relativePath;
     
     client.scp(absolutePath, scpCustomConfig, function(err) {
-        console.log(err);
+        if (err) {
+            console.log(err);
+        }
     }); 
 });
 

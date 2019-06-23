@@ -1,0 +1,23 @@
+{
+  "name": "watch-and-sync-remote",
+  "version": "1.0.0",
+  "description": "Watches a local version of a directory and pushes changes to a remote copy of that directory",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eddiechou/watch-and-sync-remote.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eddiechou/watch-and-sync-remote/issues"
+  },
+  "homepage": "https://github.com/eddiechou/watch-and-sync-remote#readme",
+  "dependencies": {
+    "node-watch": "^0.6.2",
+    "scp2": "^0.5.0"
+  }
+}

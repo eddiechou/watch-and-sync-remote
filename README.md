@@ -1,5 +1,5 @@
 # watch-and-sync-remote
-Watches a local directory and pushes any file changes to a remote copy of that directory.
+Watches a local directory and pushes files that change to a remote directory.
 
 ## Installation
 - Download or fork/clone the repository.

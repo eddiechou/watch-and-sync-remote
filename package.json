@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/eddiechou/watch-and-sync-remote#readme",
   "dependencies": {
+    "node-ssh": "^6.0.0",
     "node-watch": "^0.6.2",
     "scp2": "^0.5.0"
   }

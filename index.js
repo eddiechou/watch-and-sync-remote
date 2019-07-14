@@ -1,28 +1,58 @@
-const watch = require('node-watch');
-const client = require('scp2');
-const config = require('./config');
+const watch = require("node-watch");
+const client = require("scp2");
+const node_ssh = require("node-ssh");
+const config = require("./config");
+const ssh = new node_ssh();
 
 const scpDefaultConfig = {
-    port: config.remotePort,
-    host: config.remoteHost,
-    username: config.remoteUsername,
-    privateKey: require("fs").readFileSync(config.privateKeyPath),
-    // password: 'password', (accepts password also)
-    path: config.remotePath,
+  port: config.remotePort,
+  host: config.remoteHost,
+  username: config.remoteUsername,
+  privateKey: require("fs").readFileSync(config.privateKeyPath),
+  // password: 'password', (accepts password also)
+  path: config.remotePath
 };
 
-watch(config.watchDirectoryPath, { recursive: true }, (evt, absolutePath) => {
-    console.log('%s changed.', absolutePath);
-    
-    let scpCustomConfig = {...scpDefaultConfig};
-    let relativePath = absolutePath.replace(config.watchDirectoryPath, '');
-    scpCustomConfig["path"] = scpDefaultConfig["path"] + relativePath;
-    
-    client.scp(absolutePath, scpCustomConfig, function(err) {
-        if (err) {
-            console.log(err);
-        }
-    }); 
+// For file removals
+ssh.connect({
+  host: config.remoteHost,
+  username: config.remoteUsername,
+  privateKey: config.privateKeyPath
 });
 
-console.log(`watch-and-sync-remote is now watching directory: ${config.watchDirectoryPath}`);
+watch(config.watchDirectoryPath, { recursive: true }, (evt, absolutePath) => {
+  // Ignore all git files
+  if (absolutePath.includes(".git")) {
+    return;
+  }
+  console.log(`${evt}: ${absolutePath}`);
+
+  let scpCustomConfig = { ...scpDefaultConfig };
+  let relativePath = absolutePath.replace(config.watchDirectoryPath, "");
+  scpCustomConfig["path"] = scpDefaultConfig["path"] + relativePath;
+
+  if (evt === "update") {
+    client.scp(absolutePath, scpCustomConfig, function(err) {
+      if (err) {
+        console.log(`error: ${err}`);
+      }
+    });
+  } else if (evt === "remove") {
+    ssh
+      .execCommand(`rm -f ${relativePath}`, { cwd: `${config.remotePath}` })
+      .then(function(result) {
+        if (result.stdout) {
+          console.log("STDOUT: " + result.stdout);
+        }
+        if (result.stderr) {
+          console.log("STDERR: " + result.stderr);
+        }
+      });
+  }
+});
+
+console.log(
+  `watch-and-sync-remote is now watching directory: ${
+    config.watchDirectoryPath
+  }`
+);

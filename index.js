@@ -2,13 +2,14 @@ const watch = require("node-watch");
 const client = require("scp2");
 const node_ssh = require("node-ssh");
 const config = require("./config");
+const fs = require("fs");
 const ssh = new node_ssh();
 
 const scpDefaultConfig = {
   port: config.remotePort,
   host: config.remoteHost,
   username: config.remoteUsername,
-  privateKey: require("fs").readFileSync(config.privateKeyPath),
+  privateKey: fs.readFileSync(config.privateKeyPath),
   // password: 'password', (accepts password also)
   path: config.remotePath
 };
@@ -39,10 +40,31 @@ watch(config.watchDirectoryPath, { recursive: true }, (evt, absolutePath) => {
     });
   } else if (evt === "remove") {
     ssh
-      .execCommand(`rm -f ${relativePath}`, { cwd: `${config.remotePath}` })
+      .execCommand(`ls -pd ${relativePath}`, {
+        cwd: `${config.remotePath}`
+      })
       .then(function(result) {
         if (result.stdout) {
           console.log("STDOUT: " + result.stdout);
+          let removeCommand = "rm -f";
+
+          // command for directory
+          if (result.stdout[result.stdout.length - 1] === "/") {
+            removeCommand = "rm -rf";
+          }
+
+          ssh
+            .execCommand(`${removeCommand} ${relativePath}`, {
+              cwd: `${config.remotePath}`
+            })
+            .then(function(result) {
+              if (result.stdout) {
+                console.log("STDOUT: " + result.stdout);
+              }
+              if (result.stderr) {
+                console.log("STDERR: " + result.stderr);
+              }
+            });
         }
         if (result.stderr) {
           console.log("STDERR: " + result.stderr);
